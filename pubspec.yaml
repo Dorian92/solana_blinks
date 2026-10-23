@@ -18,6 +18,9 @@ dependencies:
   solana_kit_codecs_strings: ^0.11.0
   solana_kit_keys: ^0.11.0
   solana_kit_rpc: ^0.11.0
+  solana_kit_rpc_api: ^0.11.0
+  solana_kit_rpc_spec: ^0.11.0
+  solana_kit_rpc_types: ^0.11.0
   solana_mobile_client: ^0.1.2
 
 dev_dependencies:
