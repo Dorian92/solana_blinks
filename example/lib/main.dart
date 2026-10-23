@@ -1,121 +1,217 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:solana_blinks/solana_blinks.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const BlinksExampleApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+/// Example app that runs a blink against devnet.
+class BlinksExampleApp extends StatelessWidget {
+  /// Creates the example app.
+  const BlinksExampleApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Solana Blinks',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF9945FF)),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+/// One sample blink shown on the home screen.
+class SampleBlink {
+  /// Creates a sample.
+  const SampleBlink({
+    required this.title,
+    required this.url,
+    required this.detail,
+  });
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
+  /// Short name.
   final String title;
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  /// URL passed to [BlinkCard].
+  final String url;
+
+  /// Why this URL is in the list.
+  final String detail;
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+/// Sample devnet tips served by `example/server`.
+const List<SampleBlink> sampleBlinks = <SampleBlink>[
+  SampleBlink(
+    title: 'Local devnet tip',
+    url: 'http://127.0.0.1:8080/tip',
+    detail: 'Website URL. The card loads actions.json from this host.',
+  ),
+  SampleBlink(
+    title: 'Local tip via solana-action',
+    url: 'solana-action:http://127.0.0.1:8080/api/tip',
+    detail: 'Action URL. Skips the actions.json lookup.',
+  ),
+  SampleBlink(
+    title: 'Emulator host tip',
+    url: 'http://10.0.2.2:8080/tip',
+    detail: 'Same server, reached from an Android emulator.',
+  ),
+];
 
-  void _incrementCounter() {
+/// Home screen: paste a URL, pick a sample, and choose a wallet.
+class HomePage extends StatefulWidget {
+  /// Creates the home screen.
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _paste = TextEditingController();
+  final ActionClient _client = ActionClient();
+  final KeypairWalletAdapter _keypair = KeypairWalletAdapter();
+  final MwaWalletAdapter _mwa = MwaWalletAdapter(
+    identityUri: Uri.parse('https://github.com/Dorian92/solana_blinks'),
+    iconUri: Uri.parse('https://github.com/Dorian92/solana_blinks'),
+    identityName: 'solana_blinks example',
+    cluster: 'devnet',
+  );
+
+  bool _useMwa = false;
+  String? _url;
+  int _generation = 0;
+
+  @override
+  void dispose() {
+    _paste.dispose();
+    super.dispose();
+  }
+
+  void _open(String url) {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _url = trimmed;
+      _generation += 1;
     });
+  }
+
+  void _onSuccess(String signature) {
+    if (!mounted) {
+      return;
+    }
+    final explorer = Uri.https('explorer.solana.com', '/tx/$signature', {
+      'cluster': 'devnet',
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Confirmed. $explorer'),
+        action: SnackBarAction(
+          label: 'Explorer',
+          onPressed: () {
+            unawaited(
+              launchUrl(explorer, mode: LaunchMode.externalApplication),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _onError(Object error) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('$error')));
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final url = _url;
+    final adapter = _useMwa ? _mwa : _keypair;
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      appBar: AppBar(title: const Text('Solana Blinks')),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                TextField(
+                  controller: _paste,
+                  decoration: const InputDecoration(
+                    labelText: 'Blink URL',
+                    hintText: 'solana-action:https://...',
+                    border: OutlineInputBorder(),
+                  ),
+                  onSubmitted: _open,
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  onPressed: () => _open(_paste.text),
+                  child: const Text('Open'),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    _useMwa ? 'Mobile Wallet Adapter' : 'Keypair (devnet)',
+                  ),
+                  subtitle: Text(
+                    _useMwa
+                        ? 'Android only. iOS and desktop throw an unsupported-platform error.'
+                        : 'Ephemeral devnet key. Airdrop SOL to it before sending a tip.',
+                  ),
+                  value: _useMwa,
+                  onChanged: (value) => setState(() => _useMwa = value),
+                ),
+                if (!_useMwa)
+                  SelectableText(
+                    _keypair.address,
+                    key: const Key('devnet-address'),
+                  ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sample devnet blinks',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                for (final sample in sampleBlinks)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(sample.title),
+                    subtitle: Text(sample.detail),
+                    selected: sample.url == url,
+                    onTap: () => _open(sample.url),
+                  ),
+              ],
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+          ),
+          if (url != null)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: BlinkCard(
+                  key: ValueKey('$_useMwa|$url|$_generation'),
+                  url: url,
+                  adapter: adapter,
+                  client: _client,
+                  rpcUrl: defaultBlinkRpcUrl,
+                  onSuccess: _onSuccess,
+                  onError: _onError,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
