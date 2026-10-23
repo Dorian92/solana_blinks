@@ -11,3 +11,4 @@ export 'src/core/transaction_executor.dart';
 export 'src/version.dart';
 export 'src/wallet/blink_wallet_adapter.dart';
 export 'src/wallet/keypair_wallet_adapter.dart';
+export 'src/wallet/mwa_wallet_adapter.dart';
