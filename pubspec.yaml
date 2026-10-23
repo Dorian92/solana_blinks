@@ -1,0 +1,39 @@
+name: solana_blinks
+description: Native Flutter widgets for Solana Actions and Blinks, with a swappable wallet adapter.
+version: 0.1.0
+homepage: https://github.com/Dorian92/solana_blinks
+repository: https://github.com/Dorian92/solana_blinks
+
+environment:
+  # solana_kit_rpc 0.11.0 requires Dart 3.13. That is the newest floor this
+  # package can honestly advertise; 3.4 would not resolve.
+  sdk: ^3.13.0
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  solana_kit_addresses: ^0.11.0
+  solana_kit_codecs_strings: ^0.11.0
+  solana_kit_keys: ^0.11.0
+  solana_kit_rpc: ^0.11.0
+  solana_kit_rpc_api: ^0.11.0
+  solana_kit_rpc_spec: ^0.11.0
+  solana_kit_rpc_types: ^0.11.0
+  solana_mobile_client: ^0.1.2
+
+topics:
+  - solana
+  - blinks
+  - web3
+  - wallet
+  - flutter-widget
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.5
+
+flutter:
