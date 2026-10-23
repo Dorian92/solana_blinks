@@ -74,7 +74,7 @@ class TransactionExecutor {
   /// Delay between `getSignatureStatuses` calls.
   final Duration pollInterval;
 
-  /// Signs [response.transaction] and waits until it is confirmed.
+  /// Signs the base64 transaction on [response] and waits until it is confirmed.
   Future<ExecutionResult> execute(ActionPostResponse response) async {
     final encoded = response.transaction?.trim();
     if (encoded == null || encoded.isEmpty) {

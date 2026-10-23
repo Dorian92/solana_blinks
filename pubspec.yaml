@@ -23,6 +23,13 @@ dependencies:
   solana_kit_rpc_types: ^0.11.0
   solana_mobile_client: ^0.1.2
 
+topics:
+  - solana
+  - blinks
+  - web3
+  - wallet
+  - flutter-widget
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
