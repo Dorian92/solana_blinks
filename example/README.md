@@ -43,6 +43,8 @@ A confirmed signature shows a snackbar. **Explorer** opens `https://explorer.sol
 
 On an Android emulator, use **Emulator host tip** (`http://10.0.2.2:8080/tip`) so the emulator reaches the server on the host machine. Toggle **Mobile Wallet Adapter** only on a device or emulator that has a wallet installed. That adapter is Android-only; iOS and desktop throw `WalletUnsupportedPlatformException`.
 
+`flutter build web` compiles this app. Mobile Wallet Adapter is imported from `package:solana_blinks/mwa.dart`, and the main `solana_blinks` barrel does not import `dart:io`. On web the adapter throws `WalletUnsupportedPlatformException`; use the keypair toggle there.
+
 `flutter build apk --debug` produces `build/app/outputs/flutter-apk/app-debug.apk`. It needs Android SDK platform 36, build-tools 36.0.0, and NDK 28.2.13676358. `solana_mobile_client` 0.1.2 still declares `compileSdk` 31, and the AndroidX libraries it pulls in require 34 or newer, so `android/build.gradle.kts` raises library compile SDKs to 36. That plugin also applies the Kotlin Gradle plugin itself; Flutter 3.47 warns that a future Flutter release will reject that until the plugin migrates.
 
 There is no Android emulator in this environment, so `flutter run` and a tip signed by a real wallet were not executed. `POST /api/tip` was checked against `https://api.devnet.solana.com` and returned an unsigned transfer.

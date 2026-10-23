@@ -3,6 +3,9 @@
 /// Action models, [BlinkLinkParser], and [ActionClient] live in pure Dart and
 /// do not import Flutter. Wallets are reached only through [BlinkWalletAdapter].
 /// [BlinkCard] renders an action and executes it with the injected wallet.
+///
+/// The Android Mobile Wallet Adapter is a separate import,
+/// `package:solana_blinks/mwa.dart`, so this library compiles for the web.
 library;
 
 export 'src/core/action_client.dart';
@@ -12,7 +15,6 @@ export 'src/core/transaction_executor.dart';
 export 'src/version.dart';
 export 'src/wallet/blink_wallet_adapter.dart';
 export 'src/wallet/keypair_wallet_adapter.dart';
-export 'src/wallet/mwa_wallet_adapter.dart';
 export 'src/widgets/blink_card.dart';
 export 'src/widgets/blink_controller.dart';
 export 'src/widgets/blink_scope.dart';

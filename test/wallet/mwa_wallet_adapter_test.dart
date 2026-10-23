@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:solana_blinks/mwa.dart';
 import 'package:solana_blinks/solana_blinks.dart';
 
 void main() {

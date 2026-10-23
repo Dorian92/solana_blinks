@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:solana_blinks/mwa.dart';
 import 'package:solana_blinks/solana_blinks.dart';
 import 'package:url_launcher/url_launcher.dart';
 

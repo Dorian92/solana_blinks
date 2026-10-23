@@ -1,4 +1,10 @@
 // Swap path: this file is the only one that imports solana_mobile_client.
+// The public entry point is package:solana_blinks/mwa.dart. The main barrel
+// does not export it, so core and widgets compile for the web.
+//
+// Platform.isAndroid lives behind android_platform.dart, a conditional import.
+// dart:io is not referenced from this file. On the web the stub reports that
+// the process is not Android.
 //
 // solana_mobile_client talks to the Mobile Wallet Adapter over a Pigeon
 // channel that ships inside that package. To move onto Solana Mobile's
@@ -14,12 +20,12 @@
 /// the Kotlin clientlib swap described above, not from this file.
 library;
 
-import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:solana_kit_codecs_strings/solana_kit_codecs_strings.dart';
 import 'package:solana_mobile_client/solana_mobile_client.dart';
 
+import 'android_platform.dart';
 import 'blink_wallet_adapter.dart';
 
 /// Connects to an installed Android wallet through Mobile Wallet Adapter.
@@ -93,7 +99,7 @@ class MwaWalletAdapter implements BlinkWalletAdapter {
     final token = _authToken;
     _authToken = null;
     _publicKey = null;
-    if (token == null || !Platform.isAndroid) {
+    if (token == null || !isAndroidPlatform) {
       return;
     }
     try {
@@ -156,7 +162,7 @@ class MwaWalletAdapter implements BlinkWalletAdapter {
   }
 
   void _requireAndroid() {
-    if (!Platform.isAndroid) {
+    if (!isAndroidPlatform) {
       throw const WalletUnsupportedPlatformException(
         'Mobile Wallet Adapter is only available on Android.',
       );

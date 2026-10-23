@@ -20,7 +20,7 @@ Native Flutter widgets for Solana Actions and Blinks, with a wallet you can swap
 | iOS | Not available yet. Calls throw `WalletUnsupportedPlatformException`. A later adapter can speak to Solana Mobile's Kotlin clientlib over a Pigeon channel. |
 | Any platform, devnet only | `KeypairWalletAdapter`, an in-process Ed25519 signer. Not for production and not for mainnet funds. |
 
-`MwaWalletAdapter` is the only file that imports `solana_mobile_client`. The package barrel exports it, so the web target cannot import `package:solana_blinks/solana_blinks.dart` (`dart:io` comes along with that adapter).
+Import `MwaWalletAdapter` from `package:solana_blinks/mwa.dart`. That library is the only one that imports `solana_mobile_client`. `dart:io` is used only behind a conditional import, for `Platform.isAndroid`. `package:solana_blinks/solana_blinks.dart` stays free of both, so the core and the card compile for the web. On web the adapter throws `WalletUnsupportedPlatformException`.
 
 ## Install
 
@@ -59,7 +59,7 @@ class TipPage extends StatelessWidget {
 }
 ```
 
-On Android, construct `MwaWalletAdapter` with the identity the wallet should show on the approval sheet, and set `cluster` to `devnet` or `mainnet-beta`. On devnet, `KeypairWalletAdapter()` generates an ephemeral key. Airdrop SOL to `address` before sending.
+On Android, import `package:solana_blinks/mwa.dart` and construct `MwaWalletAdapter` with the identity the wallet should show on the approval sheet. Set `cluster` to `devnet` or `mainnet-beta`. On devnet, `KeypairWalletAdapter()` generates an ephemeral key. Airdrop SOL to `address` before sending.
 
 The example app in `example/` pastes a blink URL, lists three local devnet tips, and toggles between those wallets. `example/server` is a shelf Action server that builds an unsigned devnet SOL transfer with `solana_kit`. Run instructions are in `example/README.md`.
 
